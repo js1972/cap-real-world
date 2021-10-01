@@ -1,5 +1,5 @@
 # cap-real-world
-My findings from using CAP and Fiori Elements in real-work projects. Issues, workarounds and tips.
+My findings from using CAP and Fiori Elements in real-world projects. Issues, workarounds and tips.
 
 ## Abbreviations used
 | Abbreviation | Description |
