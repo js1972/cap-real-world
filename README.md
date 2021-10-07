@@ -100,6 +100,15 @@ entity ActivityType : CodeList {
 
 __Note: If a field with a codelist attached is going to be used as an additional binding on a value help then there seems to be a bug that it cannot have 0's. So make your codelist 1-based if its and Integer key.__
 
+## Security - where to put role collections
+Where is the best place to place your apps role collections and security info?
+The SAP CAP tutorial says this:
+
+"Further, you can add role collections using the xs-security.json file. Since role collections need to be unique in a subaccount like the xsappname, you can add it here and use the ${space} variable to make them unique like for the xsappname."
+
+However, I prefer to place the role collections for my apps in the xs-security.json file instead of in the mta.yaml, even though you can use either. More complexity is allowed for in the xs-security.json file incuding attribute security.
+Also - the best practice is to separate your development layers by sub-account and not space (dev, test, prod). This is the only way to truly keep things separated as a lot of BTP services don't have the concept of a cloud foudry space.
+
 # Fiori Elements
 
 ## Value Helps
