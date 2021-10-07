@@ -7,6 +7,47 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 | FE           | Fiori Elements |
 | CAP          | Cloud Application Programming model |
 
+# MTA (Mult-Target Archive)
+
+### default-env plugin
+The CF CLI default-env plugin is a great help in automatically creating your default-env.json file, which provides environment variables so that you can run services locally when developing.
+
+Usage:
+```
+cf default-env adoptiontracker-srv
+```
+Where `myapp-srv` is the service instance on cloud foundry you want to pull down env vars from. So in this example I'm getting the env vars for a CAP service called myapp-srv.
+
+NOTE: When you deploay an MTA, destinations seem to be overwritten and so when you try and execute your app locally again it won't find the destination on cloud foundry - requiring you to run `cf default-env myapp-srv` again...
+
+```
+resources:
+
+#---------------------------------------------
+# Destination to remote service
+#---------------------------------------------
+- name: remote-api-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: remote-dest
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://blahblahblah/api/v1/search
+          existing_destinations_policy: update
+      version: 1.0.0
+    service: destination
+    service-plan: lite
+```
+Note the `existing_destinations_policy: update` value. To get around having to run default-env after every deploy we can change this setting from `update` to `ignore` (but then - dont forget to set it back if you really want to change the destination config).
+
+
+# CAP
 ## Service Handlers
 `each` has a special meaning in handler parameter names.
 By naming the event or parameter in a handler `each` it will be called as a per-row handler - as a convenience shortcut.
@@ -27,8 +68,39 @@ this.after('READ','Books', (each)=>{
 ## Remote Services
 tbd.
 
+### Long running CAP service handlers
+By default a CAP service destination will have a 30 second timeout. If you have a long running process then we can use the `HTML5.Timeout: 300000` (e.g. 5mins) parameter on the destination.
+The destination needs to be the CAP service destination (the one which provides *srv-api*).
+
 ## Efficient (dare I say best practice) annotation file structure
 tbd.
+
+## CodeLists
+Make sure to only have one key field in a code list, otherwise FE won't be able to display the values properly. See examples here, particularly the last one which shows how to add additional fields (non key):
+```
+entity ActivityStatus : CodeList {
+    key code : Integer enum {
+            Planned    = 0;
+            InProgress = 1;
+            Cancelled  = 2;
+            Complete   = 3;
+        } default 0;
+};
+
+entity ActivityType : CodeList {
+    key code : Integer enum {
+            Renewal     = 0;
+            Replacement = 1;
+            Upsell      = 2;
+            Go_live     = 3;
+        };
+    category : Integer;
+}
+```
+
+__Note: If a field with a codelist attached is going to be used as an additional binding on a value help then there seems to be a bug that it cannot have 0's. So make your codelist 1-based if its and Integer key.__
+
+# Fiori Elements
 
 ## Value Helps
 When creating value helps with dependent values on other fields I have noticed that they do not work when the dependent value is a `0`.
@@ -54,42 +126,13 @@ __So your dependent values MUST NOT BE 0-based if they are Integers.__
 ## FE General
 Please always lock your app to a specific version of SAPUI5. I have found that FE is notorious for breaking when new patch levels are released.
 
-## CodeLists
-Make sure to only have one key field in a code list, otherwise FE won't be able to display the values properly. See examples here, particularly the last one which shows how to add additional fields (non key):
+## Managed Approuter
+When using the managed approuter be careful to set public: true in the sap.cloud node of the fiori apps manifest.json. Without this your app will not be available in the BTP cockpit under HTML5 apps and you won't be able to access it in the Launchpad service.
+
 ```
-entity ActivityStatus : CodeList {
-    key code : Integer enum {
-            Planned    = 0;
-            InProgress = 1;
-            Cancelled  = 2;
-            Complete   = 3;
-        } default 0;
-};
-
-entity ActivityCategory : CodeList {
-    key code : Integer enum {
-            Adoption    = 0;
-            Transaction = 1;
-        }; // default 0;
-};
-
-entity ActivityType : CodeList {
-    key code : Integer enum {
-            Renewal     = 0;
-            Replacement = 1;
-            Upsell      = 2;
-            Go_live     = 3;
-            Reference   = 4;
-            Kick_off    = 5;
-            Business_Process_Improvement = 6;
-            Harmonisation = 7;
-            LOB_Extension = 8;
-            Pilot = 9;
-            Value_Prop = 10;
-            Architecture = 11;
-        };
-    category : Integer;
-}
+    "sap.cloud": {
+        "service": "cappie-service",
+        "public": true
+    },
 ```
-
-__Note: If a field with a codelist attached is going to be used as an additional binding on a value help then there seems to be a bug that it cannot have 0's. So make your codelist 1-based if its and Integer key.__
+The public: true setting enables the app to be access by an approuter that is not in the same space (which I guess is the case when using the managed approuter).
