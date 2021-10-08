@@ -73,7 +73,27 @@ By default a CAP service destination will have a 30 second timeout. If you have 
 The destination needs to be the CAP service destination (the one which provides *srv-api*).
 
 ## Efficient (dare I say best practice) annotation file structure
-tbd.
+I've always had an uneasy feeling with the metadata driven development model for fiori elements. We've always been taught about separation of concerns in software industry for decades now and here we are mixing up UI code with the persistence layer.
+
+So what I try to do is still keep some separation. Where it makes sense I will add annotations to the data model but only annotations that matter at that level - things such as typecasts; units of measure and curreny annotations for example.
+
+For all UI annotation I try best to keep them separated.
+
+SAP provides a wonderful example repository for FE and CAP based on the Fligths data mode here: https://github.com/SAP-samples/cap-sflight.
+
+In this sample app you can see that all the UI annotations are placed inside the `app` folder, which makes perfect sense to me.
+
+But going forther, the annotation fles are split up into domains such that we have:
+- `layouts.cds`
+- `labels.cds`
+- `value-helps.cds`
+
+...and so on.
+
+I find this separation awesome and its very quick to know where the annotations live for particular features. This becomes more and more important the bigger your app becomes. Lets face it - even an app with just two object pages can have a huge amount of UI annotations.
+
+Here's a view of the directory structure:
+![CAP sflight example directory structure](img/flight_repo_structure.jpg)
 
 ## CodeLists
 Make sure to only have one key field in a code list, otherwise FE won't be able to display the values properly. See examples here, particularly the last one which shows how to add additional fields (non key):
