@@ -44,7 +44,11 @@ resources:
     service: destination
     service-plan: lite
 ```
-Note the `existing_destinations_policy: update` value. To get around having to run default-env after every deploy we can change this setting from `update` to `ignore` (but then - dont forget to set it back if you really want to change the destination config).
+Note the `existing_destinations_policy: update` value.
+You could try changing this setting from `update` to `ignore` and indeed this stops the destination from being changed on each deployment. BUT - it seems the *bindings* are re-created every time anyway.
+So, there does not seem to be a way to get around this (having to continually run default-enc) right now.
+
+__You can of course minimise the need by only deploying the service that you have changed instead of the entire MTA each time.__
 
 
 # CAP
@@ -128,6 +132,59 @@ The SAP CAP tutorial says this:
 
 However, I prefer to place the role collections for my apps in the xs-security.json file instead of in the mta.yaml, even though you can use either. More complexity is allowed for in the xs-security.json file incuding attribute security.
 Also - the best practice is to separate your development layers by sub-account and not space (dev, test, prod). This is the only way to truly keep things separated as a lot of BTP services don't have the concept of a cloud foudry space.
+
+## Logging and Debugging
+You may want to log debug information, but only when you are actually having issues - so not generally clogging up the logs.
+
+A standard node.js way to do this is with the `debug` module.
+
+Add it to the package.json as a dependency like so:
+```
+"dependencies": {
+    "@sap/cds": "^4",
+    "debug": "^4.3"
+}
+```
+
+Now in the CAP service where you may like to issue debug logs (at the top of the file):
+```
+const debug = require('debug')('srv:catalog-service');
+
+module.exports = ...
+```
+
+`srv:catalog-service` is any name you like and will be used to reference this module for when you want it to issue debug statements to the log (see further below).
+
+Now, instead of doing calls to `console.log()` you can do calls to `debug()`.
+
+e.g.
+```
+debug(ech.comments, {"country": each.country, "amount": each.amount});
+```
+
+When we run our app we need to set the `DEBUG` environment variable like so:
+```
+DEBUG=srv:* cds watch
+```
+This will set debug locally for this `cds watch` and it will do so only for modules matching this label `srv:*`. Remember that we imported the debug module with a name: `srv:catalog-service`.
+
+When your app is deployed on cloud foundry we need to inject the debug environment into the service.
+
+We can view cloud foundry app logs:
+```
+cf logs app-srv
+```
+
+Inject the environment variable
+```
+cf set-env app-srv DEBUG 'srv:*'
+```
+Restage the service for the environment variable to take affect
+```
+cf restage app-srv
+```
+
+[HANA Academy - Extension Generators - debug](https://www.youtube.com/watch?v=XA6S2zVpTSQ&list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN&index=6)
 
 # Fiori Elements
 
