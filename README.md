@@ -4,10 +4,21 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 ## Abbreviations used
 | Abbreviation | Description |
 | ------------ | ----------- |
-| FE           | Fiori Elements |
 | CAP          | Cloud Application Programming model |
+| FE           | Fiori Elements |
+| MTA          | Multi-target Archive |
 
-# MTA (Mult-Target Archive)
+
+# Contents
+1. [MTA's](#MTA)
+1. [CAP](#CAP)
+1. [FE](#Fiori)
+---
+
+&nbsp;  
+&nbsp;  
+
+# MTA
 
 ### default-env plugin
 The CF CLI default-env plugin is a great help in automatically creating your default-env.json file, which provides environment variables so that you can run services locally when developing.
