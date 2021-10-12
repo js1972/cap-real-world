@@ -10,9 +10,22 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 
 
 # Contents
-1. [MTA's](#MTA)
-1. [CAP](#CAP)
-1. [FE](#Fiori-Elements)
+* [MTA's](#MTA)
+    - [DefaultEnv CF CLI Plugin](#default-env-plugin)
+* [CAP](#CAP)
+    - [Service Handlers](#Service-Handlers)
+    - [Remote Services](#Remote-Services)
+    - [Long running CAP service handlers](#Long-running-CAP-service-handlers)
+    - [Efficient (dare I say best practice) annotation file structure](#Efficient-(dare-I-say-best-practice)-annotation-file-structure)
+    - [CodeLists](#CodeLists)
+    - [Security - where to put role collections](#Security-where-to-put-role-collections)
+    - [Logging and Debugging](#Logging-and-Debugging)
+    - [Kibana friendly log output](#Kibana-friendly-logs)
+* [FE](#Fiori-Elements)
+    - [Value Helps](#Value-Helps)
+    - [General](#FE-General)
+    - [Managed Approuter specifics](Managed-Approuter)
+* [Node.js/NPM](#Node-NPM)
 ---
 
 &nbsp;  
@@ -20,7 +33,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 
 # MTA
 
-### default-env plugin
+### default-env-plugin
 The CF CLI default-env plugin is a great help in automatically creating your default-env.json file, which provides environment variables so that you can run services locally when developing.
 
 Usage:
@@ -63,7 +76,7 @@ __You can of course minimise the need by only deploying the service that you hav
 
 
 # CAP
-## Service Handlers
+## Service-Handlers
 `each` has a special meaning in handler parameter names.
 By naming the event or parameter in a handler `each` it will be called as a per-row handler - as a convenience shortcut.
 ```
@@ -80,14 +93,14 @@ this.after('READ','Books', (each)=>{
 
 [Details](https://cap.cloud.sap/docs/node.js/services#event-handlers)
 
-## Remote Services
+## Remote-Services
 tbd.
 
-### Long running CAP service handlers
+### Long-running-CAP-service-handlers
 By default a CAP service destination will have a 30 second timeout. If you have a long running process then we can use the `HTML5.Timeout: 300000` (e.g. 5mins) parameter on the destination.
 The destination needs to be the CAP service destination (the one which provides *srv-api*).
 
-## Efficient (dare I say best practice) annotation file structure
+## Efficient-(dare-I-say-best-practice)-annotation-file-structure
 I've always had an uneasy feeling with the metadata driven development model for fiori elements. We've always been taught about separation of concerns in software industry for decades now and here we are mixing up UI code with the persistence layer.
 
 So what I try to do is still keep some separation. Where it makes sense I will add annotations to the data model but only annotations that matter at that level - things such as typecasts; units of measure and curreny annotations for example.
@@ -135,7 +148,7 @@ entity ActivityType : CodeList {
 
 __Note: If a field with a codelist attached is going to be used as an additional binding on a value help then there seems to be a bug that it cannot have 0's. So make your codelist 1-based if its and Integer key.__
 
-## Security - where to put role collections
+## Security-where-to-put-role-collections
 Where is the best place to place your apps role collections and security info?
 The SAP CAP tutorial says this:
 
@@ -144,7 +157,7 @@ The SAP CAP tutorial says this:
 However, I prefer to place the role collections for my apps in the xs-security.json file instead of in the mta.yaml, even though you can use either. More complexity is allowed for in the xs-security.json file incuding attribute security.
 Also - the best practice is to separate your development layers by sub-account and not space (dev, test, prod). This is the only way to truly keep things separated as a lot of BTP services don't have the concept of a cloud foudry space.
 
-## Logging and Debugging
+## Logging-and-Debugging
 You may want to log debug information, but only when you are actually having issues - so not generally clogging up the logs.
 
 A standard node.js way to do this is with the `debug` module.
@@ -197,9 +210,20 @@ cf restage app-srv
 
 [HANA Academy - Extension Generators - debug](https://www.youtube.com/watch?v=XA6S2zVpTSQ&list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN&index=6)
 
+## Kibana-friendly-logs
+Configure the Kibana formatter in the package.json:
+![Kibana friendly log output](img/cap-kibana-logs.jpg)
+
+Use the kibana formatter like so:
+```
+const LOG = cds.log('custom')
+LOG.info("My custom log output")
+```
+
+
 # Fiori-Elements
 
-## Value Helps
+## Value-Helps
 When creating value helps with dependent values on other fields I have noticed that they do not work when the dependent value is a `0`.
 
 For example - this value help on ActivityType is dependent (or should be filtered) on the category, which is a separate field on the page:
@@ -220,10 +244,10 @@ If the category_code values can be 0, 1, 2, 3, 4 for example and 0 is chosen by 
 
 __So your dependent values MUST NOT BE 0-based if they are Integers.__
 
-## FE General
+## FE-General
 Please always lock your app to a specific version of SAPUI5. I have found that FE is notorious for breaking when new patch levels are released.
 
-## Managed Approuter
+## Managed-Approuter
 When using the managed approuter be careful to set public: true in the sap.cloud node of the fiori apps manifest.json. Without this your app will not be available in the BTP cockpit under HTML5 apps and you won't be able to access it in the Launchpad service.
 
 ```
@@ -233,3 +257,13 @@ When using the managed approuter be careful to set public: true in the sap.cloud
     },
 ```
 The public: true setting enables the app to be access by an approuter that is not in the same space (which I guess is the case when using the managed approuter).
+
+
+# Node-NPM
+"Stay up to date, but don't break your productive app"
+- Use package-lock.json
+- Manually update dependencies regularly
+```
+npm outdated
+npm update
+```
