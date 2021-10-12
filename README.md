@@ -24,7 +24,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 * [FE](#Fiori-Elements)
     - [Value Helps](#Value-Helps)
     - [General](#FE-General)
-    - [Managed Approuter specifics](Managed-Approuter)
+    - [Managed Approuter specifics](#Managed-Approuter)
 * [Node.js/NPM](#Node-NPM)
 ---
 
