@@ -12,7 +12,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 # Contents
 1. [MTA's](#MTA)
 1. [CAP](#CAP)
-1. [FE](#Fiori_Elements)
+1. [FE](#Fiori-Elements)
 ---
 
 &nbsp;  
@@ -197,7 +197,7 @@ cf restage app-srv
 
 [HANA Academy - Extension Generators - debug](https://www.youtube.com/watch?v=XA6S2zVpTSQ&list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN&index=6)
 
-# Fiori Elements
+# Fiori-Elements
 
 ## Value Helps
 When creating value helps with dependent values on other fields I have noticed that they do not work when the dependent value is a `0`.
