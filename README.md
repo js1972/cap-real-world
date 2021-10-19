@@ -91,7 +91,7 @@ Some notes on the CAP generator:
 - This blog post: [How to share tables across different cap projects](https://blogs.sap.com/2021/10/03/how-to-share-tables-across-different-cap-projects/) is fantastic and each of these options is catered for by the CAP generator.
 - This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project. The CAP generator also does this.
 
-## How to setup the cds requires section of package-json
+## How to setup the cds requires section of package json
 See this example below. By using `profiles` we can run locally with mock users or a different database (sqlite db file) in "development mode". Then in "production mode" use the HANA Cloud db for example.
 
 You can run the relevant profile like:
