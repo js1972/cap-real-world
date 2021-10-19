@@ -98,6 +98,7 @@ You can run the relevant profile like:
 ```
 npx -p @sap/cds-dk cds build --production
 ```
+
 The above is the CAP build step inside an mta.yaml file (as an example).
 
 `cds watch` uses the `[development]` profile by default.
