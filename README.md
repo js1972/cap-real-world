@@ -14,7 +14,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [DefaultEnv CF CLI Plugin](#default-env-plugin)
 * [CAP](#CAP)
     - [Scaffold a new CAP app](#scaffold-a-new-cap-app)
-    - [How to setup the cds.requires section of package.json](how-to-setup-the-cds-requires-section-of-package-json)
+    - [How to setup the cds.requires section of package.json](#how-to-setup-the-cds-requires-section-of-package-json)
     - [Service Handlers](#service-handlers)
     - [Remote Services](#remote-services)
     - [Long running CAP service handlers](#long-running-cap-service-handlers)
