@@ -18,7 +18,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Service Handlers](#service-handlers)
     - [Remote Services](#remote-services)
     - [Long running CAP service handlers](#long-running-cap-service-handlers)
-    - [Efficient (dare I say best practice) annotation file structure](#efficient-(dare-i-say-best-practice)-annotation-file-structure)
+    - [Efficient (dare I say best practice) annotation file structure](#efficient-dare-i-say-best-practice-annotation-file-structure)
     - [CodeLists](#codelists)
     - [Security - where to put role collections](#security-where-to-put-role-collections)
     - [Logging and Debugging](#logging-and-debugging)
