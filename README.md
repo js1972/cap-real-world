@@ -14,6 +14,8 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [DefaultEnv CF CLI Plugin](#default-env-plugin)
 * [CAP](#CAP)
     - [Scaffold a new CAP app](#scaffold-a-new-cap-app)
+    - [Some notes on the CAP generator](#some-notes-on-the-cap-generator)
+    - [Separating fiori apps from the CAP service (Separate MTA's)](#sSeparating-fiori-apps-from-the-cap-service-separate-mta's)
     - [How to setup the cds.requires section of package.json](#how-to-setup-the-cds-requires-section-of-package-json)
     - [Service Handlers](#service-handlers)
     - [Remote Services](#remote-services)
@@ -23,6 +25,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Security - where to put role collections](#security-where-to-put-role-collections)
     - [Logging and Debugging](#logging-and-debugging)
     - [Kibana friendly log output](#kibana-friendly-logs)
+* [Fiori - General](#fiori-general)
 * [FE](#fiori-elements)
     - [Value Helps](#value-helps)
     - [General](#fe-general)
@@ -85,11 +88,21 @@ There are a lot of steps in this tutorial and its mostly boilerplate. We can use
 
 The SHA CAP generator is well explained in this [series of videos](https://www.youtube.com/playlist?list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN) by the SHA team.
 
-Some notes on the CAP generator:
+### Some notes on the CAP generator
 &nbsp;
 - Ideally you would use the HTML5 repository to host your web app. There is an option to put your web app inside the approuter, but its really only for small apps or test apps. If you choose the HTML5repo option then the generated sample fiori app will be correctly setup with UI5-tooling and the normal build process.
 - This blog post: [How to share tables across different cap projects](https://blogs.sap.com/2021/10/03/how-to-share-tables-across-different-cap-projects/) is fantastic and each of these options is catered for by the CAP generator.
 - This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project. The CAP generator also does this.
+
+### Separating fiori apps from the CAP service (Separate MTA's)
+It is not always the case that you will want your UI app(s) to be part of the same MTA as the CAP service.
+&nbsp;
+Cases where you want to create a reusable API with CAP for example.
+
+For these cases - we can use cross-mta references. See these blog posts for details:
+- [Split MTA into backend & frontend – Managed AppRouter](https://blogs.sap.com/2021/03/03/split-mta-into-backend-frontend-managed-approuter/)
+- [Split MTA into backend & frontend – Standalone AppRouter](https://blogs.sap.com/2021/03/10/split-mta-into-backend-frontend-standalone-approuter/)
+
 
 ## How to setup the cds requires section of package json
 See this example below. By using `profiles` we can run locally with mock users or a different database (sqlite db file) in "development mode". Then in "production mode" use the HANA Cloud db for example.
@@ -328,6 +341,35 @@ When using the managed approuter be careful to set public: true in the sap.cloud
     },
 ```
 The public: true setting enables the app to be access by an approuter that is not in the same space (which I guess is the case when using the managed approuter).
+
+
+# Fiori - General
+
+There doesnt seem to be a generator that works to scaffold out a standalone fiori elements app that is deployable to cloud foundry as-is.
+Even though the fiori-tools generator adds deployment config it seems to require a parent MTA prject to scaffold into. Without this you end up with something that doesn't deploy.
+
+For creating a fiori freestyle app there is the easy-ui5 yeoman generator.
+
+I should create a git repo for a vanialla mta project as created by the following BAS MTA generator. Then when wanting to build an app locally we can close this mta project and then use the fiori generator ot create the fiori module inside it with the relevant depoy config.
+
+Still seems to have to create a manual destination though. Would be good to add this into the MTA as aninstance-level destination intead.
+
+## Using Business Application Studio.
+Check the [this developer tutorial](https://developers.sap.com/group.appstudio-fiori.html) for step-by-step.
+
+* In the command box (F1) enter `fiori` and choose: `Fiori: Open CF Application Generator`. This create an MTA project with a standalone or managed approuter module
+* Now run the Fiori generator. Be sure to choose: 'Add deployment config'. You need to specify a destination so this will need to be created in the BTP cockpit. If you choose "None" then you can manually create one later.
+* You still need to make some manual steps. You need to adjust the xs-app.json inside the fiori module and add a route for the OData service (point it to the destination).
+
+Example xs-app.json route for the OData services destination (this goes INSIDE the fiori module):
+```
+{
+    "source": "^/incident/(.*)$",
+    "target": "/incident/$1",
+    "authenticationType": "none",
+    "destination": "jasondest"
+},
+```
 
 
 # Node NPM
