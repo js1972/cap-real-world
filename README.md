@@ -43,11 +43,11 @@ The CF CLI default-env plugin is a great help in automatically creating your def
 
 Usage:
 ```
-cf default-env adoptiontracker-srv
+cf default-env myapp-srv
 ```
 Where `myapp-srv` is the service instance on cloud foundry you want to pull down env vars from. So in this example I'm getting the env vars for a CAP service called myapp-srv.
 
-NOTE: When you deploay an MTA, destinations seem to be overwritten and so when you try and execute your app locally again it won't find the destination on cloud foundry - requiring you to run `cf default-env myapp-srv` again...
+NOTE: When you deploy an MTA, destinations seem to be overwritten and so when you try and execute your app locally again it won't find the destination on cloud foundry - requiring you to run `cf default-env myapp-srv` again...
 
 ```
 resources:
@@ -76,8 +76,6 @@ resources:
 Note the `existing_destinations_policy: update` value.
 You could try changing this setting from `update` to `ignore` and indeed this stops the destination from being changed on each deployment. BUT - it seems the *bindings* are re-created every time anyway.
 So, there does not seem to be a way to get around this (having to continually run default-enc) right now.
-
-__You can of course minimise the need by only deploying the service that you have changed instead of the entire MTA each time.__
 
 
 # CAP
@@ -345,16 +343,20 @@ The public: true setting enables the app to be access by an approuter that is no
 
 # Fiori - General
 
-There doesnt seem to be a generator that works to scaffold out a standalone fiori elements app that is deployable to cloud foundry as-is.
-Even though the fiori-tools generator adds deployment config it seems to require a parent MTA prject to scaffold into. Without this you end up with something that doesn't deploy.
+[Develop SAP Fiori Applications with SAP Fiori tools - SAP Help](https://help.sap.com/viewer/17d50220bcd848aa854c9c182d65b699/Latest/en-US/f09752ebcf63473e9194ea29ca232e56.html)
 
-For creating a fiori freestyle app there is the easy-ui5 yeoman generator.
 
-I should create a git repo for a vanialla mta project as created by the following BAS MTA generator. Then when wanting to build an app locally we can close this mta project and then use the fiori generator ot create the fiori module inside it with the relevant depoy config.
+Best way to create a fiori app for deployment to SAP BTP is to:
+1. Create an approuter app in BAS - this creates a minimalist MTA project with either a standalone approuter for configuration for the managed approuter.
+1. Run the fiori generator and choose to create a fiori elements or freestyle app. Choose to add deployment configuration and it will update the existing MTA. Ensure to enter your destination that points to the apps OData service
+1. From some reason you still need to manually adjust the fiori apps xs-app-json file to add a route for the OData service. This route needs to point to a destination which you manually configure in the SAP BTP cockpit. (TODO: find a way to create this destination as an instance-level destination in the MTA)
 
-Still seems to have to create a manual destination though. Would be good to add this into the MTA as aninstance-level destination intead.
+You can also use the easy-ui5 generator for creating fiori freestyle apps.
 
-## Using Business Application Studio.
+## Create a Fiori app for deployment to BTP cloud foundry
+
+*Using Business Application Studio.*
+
 Check the [this developer tutorial](https://developers.sap.com/group.appstudio-fiori.html) for step-by-step.
 
 * In the command box (F1) enter `fiori` and choose: `Fiori: Open CF Application Generator`. This create an MTA project with a standalone or managed approuter module
@@ -370,6 +372,9 @@ Example xs-app.json route for the OData services destination (this goes INSIDE t
     "destination": "jasondest"
 },
 ```
+
+## Split fiori app into seprate MTA's from CAP MTA project
+See [Separating fiori apps from the CAP service (Separate MTA's)](#sSeparating-fiori-apps-from-the-cap-service-separate-mta's)
 
 
 # Node NPM
