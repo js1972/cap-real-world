@@ -25,6 +25,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Security - where to put role collections](#security-where-to-put-role-collections)
     - [Logging and Debugging](#logging-and-debugging)
     - [Kibana friendly log output](#kibana-friendly-logs)
+    - [Custom error messages for mandatory fields](#Custom-Error-Messages-for-mandatory-fields)
 * [Fiori - General](#fiori-general)
 * [FE](#fiori-elements)
     - [Value Helps](#value-helps)
@@ -302,6 +303,8 @@ const LOG = cds.log('custom')
 LOG.info("My custom log output")
 ```
 
+## Custom Error Messages for mandatory fields
+[How to specify custom error messages for mandatory fields](https://answers.sap.com/questions/13422645/custom-error-messages-for-mandatory-fields.html)
 
 # Fiori Elements
 
