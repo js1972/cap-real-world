@@ -381,10 +381,44 @@ See [Separating fiori apps from the CAP service (Separate MTA's)](#sSeparating-f
 
 
 # Node NPM
+View versions of installed global modules:
+```
+npm list -g --depth=0
+```
+
+View outdated global modules:
+```
+npm outdated -g
+```
+
+Update all global modules with:
+```
+npm update -g
+```
+
+Update a specific global module:
+```
+npm update -g <package_name>
+```
+
 "Stay up to date, but don't break your productive app"
 - Use package-lock.json
 - Manually update dependencies regularly
 ```
 npm outdated
 npm update
+```
+
+`npm update` won't update anything - it won't update to major changes for example unless you specify the actual version in <package_name>. Try npm-check!
+
+A handy tool for managing module versions is npm-check:
+```
+# install
+npm g i npm-check
+
+# interactive update of global packages
+npm-check -u -g
+
+# interactive update for a project you are working on
+npm-check -u
 ```
