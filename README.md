@@ -10,12 +10,12 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 
 
 # Contents
-* [MTA's](#MTA)
+* [MTA's](#mta)
     - [DefaultEnv CF CLI Plugin](#default-env-plugin)
-* [CAP](#CAP)
+* [CAP](#cap)
     - [Scaffold a new CAP app](#scaffold-a-new-cap-app)
     - [Some notes on the CAP generator](#some-notes-on-the-cap-generator)
-    - [Separating fiori apps from the CAP service (Separate MTA's)](#sSeparating-fiori-apps-from-the-cap-service-separate-mta's)
+    - [Separating fiori apps from the CAP service with separate MTA's](#separating-fiori-apps-from-the-cap-service-with-separate-mtas)
     - [How to setup the cds.requires section of package.json](#how-to-setup-the-cds-requires-section-of-package-json)
     - [Service Handlers](#service-handlers)
     - [Remote Services](#remote-services)
@@ -24,13 +24,16 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [CodeLists](#codelists)
     - [Security - where to put role collections](#security-where-to-put-role-collections)
     - [Logging and Debugging](#logging-and-debugging)
+    - [Debugging with Chrome](#debugging-with-chrome)
     - [Kibana friendly log output](#kibana-friendly-logs)
-    - [Custom error messages for mandatory fields](#Custom-Error-Messages-for-mandatory-fields)
-* [Fiori - General](#fiori-general)
-* [FE](#fiori-elements)
+    - [Custom error messages for mandatory fields](#custom-error-messages-for-mandatory-fields)
+    - [Working with lots of data in CAP](#working-with-lots-of-data-in-cap)
+* [Fiori Elements](#fiori-elements)
     - [Value Helps](#value-helps)
     - [General](#fe-general)
     - [Managed Approuter specifics](#managed-approuter)
+    - [Monitoring memory, cpu, event loop ](#monitoring-memory-cpu-event-loop)
+* [Fiori (general)](#fiori-(general))
 * [Node.js/NPM](#node-npm)
 ---
 
@@ -93,7 +96,7 @@ The SHA CAP generator is well explained in this [series of videos](https://www.y
 - This blog post: [How to share tables across different cap projects](https://blogs.sap.com/2021/10/03/how-to-share-tables-across-different-cap-projects/) is fantastic and each of these options is catered for by the CAP generator.
 - This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project. The CAP generator also does this.
 
-### Separating fiori apps from the CAP service (Separate MTA's)
+## Separating fiori apps from the CAP service with separate MTAs
 It is not always the case that you will want your UI app(s) to be part of the same MTA as the CAP service.
 &nbsp;
 Cases where you want to create a reusable API with CAP for example.
@@ -293,6 +296,17 @@ cf restage app-srv
 
 [HANA Academy - Extension Generators - debug](https://www.youtube.com/watch?v=XA6S2zVpTSQ&list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN&index=6)
 
+## Debugging with Chrome
+You can debug your CAP service directly in the Chrome debugger. Which means you can use the chrome debugger for both the CAP service and any web app your project may have.
+
+When running `cds watch` you can simply type `debug` ENTER. This will restart in debug mode.
+
+Now navigate to [chrome://inspect](chrome://inspect) and choose the "Open dedicated DevTools for Node" link.
+
+You know have a full debugger - can set break-points - single step - and so on...
+
+This is a great way of debugging if you are not using BAS or VSCODE which have built-in debuggers.
+
 ## Kibana friendly logs
 Configure the Kibana formatter in the package.json:
 ![Kibana friendly log output](img/cap-kibana-logs.jpg)
@@ -306,7 +320,47 @@ LOG.info("My custom log output")
 ## Custom Error Messages for mandatory fields
 [How to specify custom error messages for mandatory fields](https://answers.sap.com/questions/13422645/custom-error-messages-for-mandatory-fields.html)
 
+## Working with lots of data in CAP
+When performing updates in a CAP service, CAP executes [integrity checks](https://cap.cloud.sap/docs/guides/providing-services#refs) on associations.
+
+These integrity checks can *massively* slow down performance. With large amounts of updates it can also lead to memory leaks and an exploding node.js heap.
+
+There are a couple of things that you can do:
+1. Completely disable integrity checking in your CAP app
+1. Disable integrity checking when you are about to perform a *heavy* operation and then turn it back on afterward
+
+Integrity checking can be globally disabled in the package.json (and numerous other locations):
+```
+...
+    "cds": {
+        "requires": {
+            "db": {
+                "kind": "sql",
+                "pool": {
+                    "acquireTimeoutMillis": 10000,
+                    "max": 1000
+                }
+            },
+            "uaa": {
+                "kind": "xsuaa",
+                "credentials": {}
+            },
+        },
+        "hana": {
+            "deploy-format": "hdbtable"
+        },
+        "features": {
+            "assert_integrity": false
+        }
+    }
+```
+
+Integrity checks can be disabled programmatically by setting `cds.env.features.assert_integrity = true` to true/false.
+
+
 # Fiori Elements
+Excellent resource for Fiori Elements V4 - sample app showing lots of features:
+[FE V4 features sample app](https://github.com/SAP-samples/fiori-elements-feature-showcase)
 
 ## Value Helps
 When creating value helps with dependent values on other fields I have noticed that they do not work when the dependent value is a `0`.
@@ -344,7 +398,24 @@ When using the managed approuter be careful to set public: true in the sap.cloud
 The public: true setting enables the app to be access by an approuter that is not in the same space (which I guess is the case when using the managed approuter).
 
 
-# Fiori - General
+## Monitoring memory cpu event loop 
+[Clinic Doctor](https://clinicjs.org) is a great toolset for monitoring the performance of Node.js applications.
+
+Run clinic doctor (from within your project) with CAP as follows:
+```
+clinic doctor -- node ./node_modules/.bin/cds run --in-memory
+```
+At the end of your test use ctrl-c to exit and a web browser window will automatically open with the performance test results.
+
+Occasionally clinic doctor can fail to build the html page. If this happens then run the following to manually produce it:
+```
+clinic doctor --visualize-only .clinic/37637.clinic-doctor
+```
+Where the directory: `.clinic/37637.clinic-doctor` is where the captured trace files were written.
+
+NOTE: When running clini doctor for a long time, the data collection can get into the GB's and processing the charts in the web page can take 5 to 10 minutes plus.
+
+# Fiori (general)
 
 [Develop SAP Fiori Applications with SAP Fiori tools - SAP Help](https://help.sap.com/viewer/17d50220bcd848aa854c9c182d65b699/Latest/en-US/f09752ebcf63473e9194ea29ca232e56.html)
 
