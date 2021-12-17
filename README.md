@@ -362,6 +362,11 @@ Integrity checks can be disabled programmatically by setting `cds.env.features.a
 Sometimes you may have an external service and you extend that service in CAP with additional fields. In this case you need to persiste the data. See here the annotations to allow this:
 ![External service persistence](img/external-service-persistence.jpg)
 
+Note that we still need to tell CAP how to combine our remote service with the locally persisted properties and this is done in our service handler.
+In this (`.on`) handler we can make the external call to our external service and then expand on the result with our own data.
+
+A good deep dive from Thomas Jung on using remote services in CAP: [Consume external services](https://www.youtube.com/watch?v=rWQFbXFEr1M).
+
 # Fiori Elements
 Excellent resource for Fiori Elements V4 - sample app showing lots of features:
 [FE V4 features sample app](https://github.com/SAP-samples/fiori-elements-feature-showcase)
