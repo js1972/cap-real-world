@@ -28,6 +28,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Kibana friendly log output](#kibana-friendly-logs)
     - [Custom error messages for mandatory fields](#custom-error-messages-for-mandatory-fields)
     - [Working with lots of data in CAP](#working-with-lots-of-data-in-cap)
+    - [Remote services with persistence](#remote-services-with-persistence)
 * [Fiori Elements](#fiori-elements)
     - [Value Helps](#value-helps)
     - [General](#fe-general)
@@ -357,6 +358,9 @@ Integrity checking can be globally disabled in the package.json (and numerous ot
 
 Integrity checks can be disabled programmatically by setting `cds.env.features.assert_integrity = true` to true/false.
 
+## Remote services with persistence
+Sometimes you may have an external service and you extend that service in CAP with additional fields. In this case you need to persiste the data. See here the annotations to allow this:
+![External service persistence](img/external-service-persistence.jpg)
 
 # Fiori Elements
 Excellent resource for Fiori Elements V4 - sample app showing lots of features:
