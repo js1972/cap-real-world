@@ -12,6 +12,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 # Contents
 * [MTA's](#mta)
     - [DefaultEnv CF CLI Plugin](#default-env-plugin)
+    - [HDI Deployer - auto-undeploy property](#hdi-deployer-auto-undeploy)
 * [CAP](#cap)
     - [Scaffold a new CAP app](#scaffold-a-new-cap-app)
     - [Some notes on the CAP generator](#some-notes-on-the-cap-generator)
@@ -81,6 +82,25 @@ resources:
 Note the `existing_destinations_policy: update` value.
 You could try changing this setting from `update` to `ignore` and indeed this stops the destination from being changed on each deployment. BUT - it seems the *bindings* are re-created every time anyway.
 So, there does not seem to be a way to get around this (having to continually run default-enc) right now.
+
+### hdi-deployer auto-undeploy
+To set auto-undeploy for the hdi deployer module set the following `property` in the hdi deployer module (in your MTA):
+```
+  # ---------------- DATABASE DEPLOYER MODULE ------------------
+  - name: activityrepo-db-deployer
+  # ------------------------------------------------------------
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 1024M
+    properties:
+      HDI_DEPLOY_OPTIONS: "{ \"auto_undeploy\": true, \"trace\": true }"
+    requires:
+      - name: activityrepo-uaa
+      - name: activityrepo-db
+```
 
 
 # CAP
