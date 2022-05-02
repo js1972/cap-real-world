@@ -257,11 +257,45 @@ __Note: If a field with a codelist attached is going to be used as an additional
 
 ## Security where to put role collections
 Where is the best place to place your apps role collections and security info?
-The SAP CAP tutorial says this:
 
-"Further, you can add role collections using the xs-security.json file. Since role collections need to be unique in a subaccount like the xsappname, you can add it here and use the ${space} variable to make them unique like for the xsappname."
+There are 3 ways to create role collections for your app:
+1. In the xs-security.json file
+1. In the mta.yaml file
+1. Create them manually in the BTP cockpit.
 
-However, I prefer to place the role collections for my apps in the xs-security.json file instead of in the mta.yaml, even though you can use either. More complexity is allowed for in the xs-security.json file incuding attribute security.
+### xs-security.json
+Role Collections can be specified inside the [xs-security.json](https://help.sap.com/docs/BTP/65de2977205c403bbc107264b8eccf4b/517895a9612241259d6941dbf9ad81cb.html) file. 
+
+By specifying them here you keep all your security in the one place and not mixed up between here and the mta.yaml.
+
+Considering that *best practice* is to use separate subaccounts for each application layer (dev, tst, prd, etc) then there is no need to really append the space name to the role collections as allowed by using the mta.yaml.
+
+### mta.yaml
+In the UAA resource in the mta.yaml you can define your Role Collections like this example:
+```
+resources:
+  # ----------------------- UAA SERVICE ------------------------
+  - name: activityrepo-uaa
+  # ------------------------------------------------------------
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        role-collections:
+        - description: Administer Activity Repo
+          name: FREActivityAdmin-${space}
+          role-template-references:
+          - $XSAPPNAME.FREActivityAdmin
+```
+You can see that you can automatically append the space name when defining your role collections here.
+
+### Manual
+You can manually create Role Collections in the BTP cockpit. They can be created with the required scopes pre-filled if your xs-security.json already includes the Role Templates.
+
+### My thoughts
+I prefer to place the role collections for my apps in the xs-security.json file instead of in the mta.yaml, even though you can use either. More complexity is allowed for in the xs-security.json file incuding attribute security.
 Also - the best practice is to separate your development layers by sub-account and not space (dev, test, prod). This is the only way to truly keep things separated as a lot of BTP services don't have the concept of a cloud foudry space.
 
 ## Logging and Debugging
