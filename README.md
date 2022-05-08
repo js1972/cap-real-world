@@ -16,6 +16,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 * [CAP](#cap)
     - [Scaffold a new CAP app](#scaffold-a-new-cap-app)
     - [Some notes on the CAP generator](#some-notes-on-the-cap-generator)
+    - [Designing UI5 apps for the Launchpad service](#designing-ui5-apps-for-the-launchpad-service)
     - [Separating fiori apps from the CAP service with separate MTA's](#separating-fiori-apps-from-the-cap-service-with-separate-mtas)
     - [How to setup the cds.requires section of package.json](#how-to-setup-the-cds-requires-section-of-package-json)
     - [Service Handlers](#service-handlers)
@@ -117,6 +118,12 @@ The SHA CAP generator is well explained in this [series of videos](https://www.y
 - This blog post: [How to share tables across different cap projects](https://blogs.sap.com/2021/10/03/how-to-share-tables-across-different-cap-projects/) is fantastic and each of these options is catered for by the CAP generator.
 - This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project. The CAP generator also does this.
 
+## Designing UI5 apps for the Launchpad service
+A great series of blog posts showing th different ways to architect your ui5 apps for BTP:
+1. [A simple UI5 app that runs in the launchpad serivce](https://blogs.sap.com/2022/01/14/designing-ui5-apps-for-sap-launchpad-service-part-1/)
+1. [Multiple apps with a shared reuse library](https://blogs.sap.com/2022/02/08/designing-ui5-apps-for-sap-launchpad-service-part-2/)
+1. [Splitting bigger projects](https://blogs.sap.com/2022/02/17/designing-ui5-apps-for-sap-launchpad-service-part-3/)
+
 ## Separating fiori apps from the CAP service with separate MTAs
 It is not always the case that you will want your UI app(s) to be part of the same MTA as the CAP service.
 &nbsp;
@@ -203,7 +210,7 @@ this.after('READ','Books', (each)=>{
 ## Remote Services
 tbd.
 
-### Long running CAP service handlers
+## Long running CAP service handlers
 By default a CAP service destination will have a 30 second timeout. If you have a long running process then we can use the `HTML5.Timeout: 300000` (e.g. 5mins) parameter on the destination.
 The destination needs to be the CAP service destination (the one which provides *srv-api*).
 
@@ -350,6 +357,13 @@ cf restage app-srv
 ```
 
 [HANA Academy - Extension Generators - debug](https://www.youtube.com/watch?v=XA6S2zVpTSQ&list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN&index=6)
+
+Here's another example of injecting and environment variable into the cloud foundry environment:
+```
+cf se activityrepo-srv DEBUG 'xssec:*'
+```
+In this case we are asking for more debug info in the cap service logs for the xssec (security) component. Good for finding xsuaa issues.
+`cf se` is shorthand for `cf set-env`.
 
 ## Debugging with Chrome
 You can debug your CAP service directly in the Chrome debugger. Which means you can use the chrome debugger for both the CAP service and any web app your project may have.
