@@ -16,9 +16,10 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 * [CAP](#cap)
     - [Scaffold a new CAP app](#scaffold-a-new-cap-app)
     - [Some notes on the CAP generator](#some-notes-on-the-cap-generator)
-    - [Designing UI5 apps for the Launchpad service](#designing-ui5-apps-for-the-launchpad-service)
+    - [Architecting CAP based UI5 apps for the Launchpad service (multiple apps/resuse)](#architecting-cap-based-ui5-apps-for-the-launchpad-service)
     - [Separating fiori apps from the CAP service with separate MTA's](#separating-fiori-apps-from-the-cap-service-with-separate-mtas)
     - [How to setup the cds.requires section of package.json](#how-to-setup-the-cds-requires-section-of-package-json)
+    - [How to work with HANA specific artefacts](#how-to-work-with-hana-specific-artefacts)
     - [Service Handlers](#service-handlers)
     - [Remote Services](#remote-services)
     - [Long running CAP service handlers](#long-running-cap-service-handlers)
@@ -31,12 +32,15 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Custom error messages for mandatory fields](#custom-error-messages-for-mandatory-fields)
     - [Working with lots of data in CAP](#working-with-lots-of-data-in-cap)
     - [Remote services with persistence](#remote-services-with-persistence)
+    - [Value Helps CDS entities must have keys](#value-help-cds-entities-must-have-keys)
 * [Fiori Elements](#fiori-elements)
     - [Value Helps](#value-helps)
     - [General](#fe-general)
     - [Managed Approuter specifics](#managed-approuter)
     - [Monitoring memory, cpu, event loop ](#monitoring-memory-cpu-event-loop)
-* [Fiori (general)](#fiori-(general))
+* [Fiori](#fiori)
+    - [Standalone fiori app](#standalone-fiori-app)
+    - [Create a Fiori app for deployment to BTP cloud foundry](#create-a-fiori-app-for-deployment-to-btp-cloud-foundry)
 * [Node.js/NPM](#node-npm)
 ---
 
@@ -118,8 +122,14 @@ The SHA CAP generator is well explained in this [series of videos](https://www.y
 - This blog post: [How to share tables across different cap projects](https://blogs.sap.com/2021/10/03/how-to-share-tables-across-different-cap-projects/) is fantastic and each of these options is catered for by the CAP generator.
 - This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project. The CAP generator also does this.
 
-## Designing UI5 apps for the Launchpad service
-A great series of blog posts showing th different ways to architect your ui5 apps for BTP:
+## Architecting CAP based UI5 apps for the Launchpad service
+When building CAP projects and adding UI's you have some architecture options such as the following (could be more):
+- Create a UI app completely separately (in another MTA) from the CAP service MTA
+- Create a UI app inside the same MTA as your CAP project
+- Create multiple UI apps inside the same MTA as your CAP project or even use a UI reuse component
+- Split the UI apps into separate MTAs.
+
+A great series of blog posts showing the different ways to architect your ui5 apps for BTP:
 1. [A simple UI5 app that runs in the launchpad serivce](https://blogs.sap.com/2022/01/14/designing-ui5-apps-for-sap-launchpad-service-part-1/)
 1. [Multiple apps with a shared reuse library](https://blogs.sap.com/2022/02/08/designing-ui5-apps-for-sap-launchpad-service-part-2/)
 1. [Splitting bigger projects](https://blogs.sap.com/2022/02/17/designing-ui5-apps-for-sap-launchpad-service-part-3/)
@@ -189,6 +199,37 @@ The above is the CAP build step inside an mta.yaml file (as an example).
   }
 
 ```
+
+## How to work with HANA specific artefacts
+If you add hana specific artefacts to your project - for example - using the annoation `@cds.persistence.exists;` then you will find it wont work with `cds watch` anymore.
+
+What we can do is have these hana specific artefacts listed in a separate cds file that is only included with the `[production]` profile.
+
+e.g.
+Lets say we want to use an existing hana view. We can create a separate cds file at `db/hana/index.cds` and refer to it in our cds config like this (package.json):
+```
+  "cds": {
+    "requires": {
+      ...
+      "db-ext": {
+        "[production]": { "model": "db/hana" }
+      }
+```
+
+Then in the new file we can add content like:
+```
+/**
+ * Add hana db specifics
+ * 
+ * Controller by "db-ext" cds config.
+ */
+using { activityrepo.db.Product, activityrepo.db.ProductCategory } from '../data-model';
+
+annotate activityrepo.db.Product with @cds.persistence.exists;
+annotate activityrepo.db.ProductCategory with @cds.persistence.exists;
+```
+
+Now we can test locally with `cds watch` and still deploy to cloud foundry (production) and use the real hana artefacts.
 
 ## Service Handlers
 `each` has a special meaning in handler parameter names.
@@ -426,6 +467,8 @@ Integrity checking can be globally disabled in the package.json (and numerous ot
 
 Integrity checks can be disabled programmatically by setting `cds.env.features.assert_integrity = true` to true/false.
 
+*!! Since the time of writing CAP now performs integrity checks on the db level so performance may be far better.*
+
 ## Remote services with persistence
 Sometimes you may have an external service and you extend that service in CAP with additional fields. In this case you need to persiste the data. See here the annotations to allow this:
 ![External service persistence](img/external-service-persistence.jpg)
@@ -434,6 +477,9 @@ Note that we still need to tell CAP how to combine our remote service with the l
 In this (`.on`) handler we can make the external call to our external service and then expand on the result with our own data.
 
 A good deep dive from Thomas Jung on using remote services in CAP: [Consume external services](https://www.youtube.com/watch?v=rWQFbXFEr1M).
+
+## Value Helps CDS entities must have keys
+As of SAPUI5 1.104.\* Fiori Elements value helps all require their backend entities to have a key(s) field defined.
 
 # Fiori Elements
 Excellent resource for Fiori Elements V4 - sample app showing lots of features:
@@ -492,8 +538,9 @@ Where the directory: `.clinic/37637.clinic-doctor` is where the captured trace f
 
 NOTE: When running clini doctor for a long time, the data collection can get into the GB's and processing the charts in the web page can take 5 to 10 minutes plus.
 
-# Fiori (general)
+# Fiori
 
+## Standalone fiori app
 [Develop SAP Fiori Applications with SAP Fiori tools - SAP Help](https://help.sap.com/viewer/17d50220bcd848aa854c9c182d65b699/Latest/en-US/f09752ebcf63473e9194ea29ca232e56.html)
 
 
