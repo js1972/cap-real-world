@@ -33,6 +33,7 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Working with lots of data in CAP](#working-with-lots-of-data-in-cap)
     - [Remote services with persistence](#remote-services-with-persistence)
     - [Value Helps CDS entities must have keys](#value-help-cds-entities-must-have-keys)
+    - [CAP deployment error - timeout health check](#cap-deployment-error-timeout-health-check)
 * [Fiori Elements](#fiori-elements)
     - [Value Helps](#value-helps)
     - [General](#fe-general)
@@ -480,6 +481,24 @@ A good deep dive from Thomas Jung on using remote services in CAP: [Consume exte
 
 ## Value Helps CDS entities must have keys
 As of SAPUI5 1.104.\* Fiori Elements value helps all require their backend entities to have a key(s) field defined.
+
+## CAP deployment error - timeout health check
+On deployment to cloud foundry a health check is executed after 60 second (by defauilt). If you have a long running startup on your app this can fail with an error like:
+```
+YYYY-MM-DDTHH:MM:SS.00-0X00 [HEALTH/0] ERR Failed to make TCP connection to port 8080: connection refused
+YYYY-MM-DDTHH:MM:SS.00-0X00 [CELL/0] ERR Timed out after 1m0s: health check never passed.
+YYYY-MM-DDTHH:MM:SS.00-0X00 [APP/PROC/WEB/0] OUT Exit status 143
+YYYY-MM-DDTHH:MM:SS.00-0X00 [CELL/0] OUT Cell XXXXXXXX stopping instance XXXXXXXX
+YYYY-MM-DDTHH:MM:SS.00-0X00 [CELL/0] OUT Cell XXXXXXXX destroying container for instance XXXXXXXX
+YYYY-MM-DDTHH:MM:SS.00-0X00 [API/1] OUT Process has crashed with type: "web"
+YYYY-MM-DDTHH:MM:SS.00-0X00 [API/1] OUT App instance exited with guid XXXXXXXX payload: {"instance"=>"XXXXXXXX", "index"=>0, "cell_id"=>"XXXXXXXX", "reason"=>"CRASHED", "exit_description"=>"Instance never healthy after 1m0s: Failed to make TCP connection to port 8080: connection refused", "crash_count"=>1, "crash_timestamp"=>XXXXXXXX, "version"=>"XXXXXXXX"}
+```
+See https://launchpad.support.sap.com/#/notes/0002833450.
+
+[Cloud foundry doco on health checks](https://docs.cloudfoundry.org/devguide/deploy-apps/healthchecks.html#setting_health_checks)
+[MTA descriptor doco showing MTA parameters that can be used](https://help.sap.com/docs/SAP_HANA_PLATFORM/4505d0bdaf4948449b7f7379d24d0f0d/4050fee4c469498ebc31b10f2ae15ff2.html?version=2.0.03&advPhr=health-check)
+
+![Extend health check timeout in MTA](img/mta-health-checks.jpg)
 
 # Fiori Elements
 Excellent resource for Fiori Elements V4 - sample app showing lots of features:
