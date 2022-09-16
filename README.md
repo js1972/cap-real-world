@@ -21,16 +21,17 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [How to setup the cds.requires section of package.json](#how-to-setup-the-cds-requires-section-of-package-json)
     - [How to work with HANA specific artefacts](#how-to-work-with-hana-specific-artefacts)
     - [Service Handlers](#service-handlers)
-    - [Remote Services](#remote-services)
     - [Long running CAP service handlers](#long-running-cap-service-handlers)
     - [Efficient (dare I say best practice) annotation file structure](#efficient-dare-i-say-best-practice-annotation-file-structure)
     - [CodeLists](#codelists)
     - [Security - where to put role collections](#security-where-to-put-role-collections)
+    - [Security - how to secure endpoints](#security-how-to-secure-endpoints)
     - [Logging and Debugging](#logging-and-debugging)
     - [Debugging with Chrome](#debugging-with-chrome)
     - [Kibana friendly log output](#kibana-friendly-logs)
     - [Custom error messages for mandatory fields](#custom-error-messages-for-mandatory-fields)
     - [Working with lots of data in CAP](#working-with-lots-of-data-in-cap)
+    - [Monitoring memory, cpu, event loop ](#monitoring-memory-cpu-event-loop)
     - [Remote services with persistence](#remote-services-with-persistence)
     - [Value Helps CDS entities must have keys](#value-help-cds-entities-must-have-keys)
     - [CAP deployment error - timeout health check](#cap-deployment-error-timeout-health-check)
@@ -38,7 +39,6 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Value Helps](#value-helps)
     - [General](#fe-general)
     - [Managed Approuter specifics](#managed-approuter)
-    - [Monitoring memory, cpu, event loop ](#monitoring-memory-cpu-event-loop)
 * [Fiori](#fiori)
     - [Standalone fiori app](#standalone-fiori-app)
     - [Create a Fiori app for deployment to BTP cloud foundry](#create-a-fiori-app-for-deployment-to-btp-cloud-foundry)
@@ -51,6 +51,8 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
 # MTA
 
 ### default-env plugin
+__*NOTE: this should be considered deprecated and `cds bind` can be used instead.*__
+
 The CF CLI default-env plugin is a great help in automatically creating your default-env.json file, which provides environment variables so that you can run services locally when developing.
 
 Usage:
@@ -107,7 +109,7 @@ To set auto-undeploy for the hdi deployer module set the following `property` in
       - name: activityrepo-uaa
       - name: activityrepo-db
 ```
-
+*Alternativly use an undeploy.json file which is created automatically if you start your project with `cds init`.*
 
 # CAP
 ## Scaffold a new CAP app
@@ -117,11 +119,13 @@ There are a lot of steps in this tutorial and its mostly boilerplate. We can use
 
 The SHA CAP generator is well explained in this [series of videos](https://www.youtube.com/playlist?list=PLkzo92owKnVwQ-0oT78691fqvHrYXd5oN) by the SHA team.
 
+*__Update Auguest 2022__: A great starting point for a CAP project is the [Business Application Studio (BAS) low-code tooling](https://developers.sap.com/group.appstudio-low-code-app.html). Here we can very easily scaffold out a new project with all the correct deployment settings and carry on development locally if you wish.*
+
 ### Some notes on the CAP generator
-&nbsp;
 - Ideally you would use the HTML5 repository to host your web app. There is an option to put your web app inside the approuter, but its really only for small apps or test apps. If you choose the HTML5repo option then the generated sample fiori app will be correctly setup with UI5-tooling and the normal build process.
 - This blog post: [How to share tables across different cap projects](https://blogs.sap.com/2021/10/03/how-to-share-tables-across-different-cap-projects/) is fantastic and each of these options is catered for by the CAP generator.
-- This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project. The CAP generator also does this.
+- This developer tutorial [Combine CAP with SAP HANA Cloud to Create Full-Stack Applications](https://developers.sap.com/mission.hana-cloud-cap.html) shows how to access native SAP HANA Cloud artefacts in a CAP project.
+__Recommendation__:The CAP generator also does this for you.
 
 ## Architecting CAP based UI5 apps for the Launchpad service
 When building CAP projects and adding UI's you have some architecture options such as the following (could be more):
@@ -249,8 +253,6 @@ this.after('READ','Books', (each)=>{
 
 [Details](https://cap.cloud.sap/docs/node.js/services#event-handlers)
 
-## Remote Services
-tbd.
 
 ## Long running CAP service handlers
 By default a CAP service destination will have a 30 second timeout. If you have a long running process then we can use the `HTML5.Timeout: 300000` (e.g. 5mins) parameter on the destination.
@@ -278,6 +280,8 @@ I find this separation awesome and its very quick to know where the annotations 
 
 Here's a view of the directory structure:
 ![CAP sflight example directory structure](img/flight_repo_structure.jpg)
+
+__*UPDATE: August 2022 - I'm not leaning toward just having one annotations file (as generated by default by fiori-tools for example) and then using fiori-tools as much as possible so that we no longer have to code any annotations. Fiori-tools gets confused when you have many different annotations files.*__
 
 ## CodeLists
 Make sure to only have one key field in a code list, otherwise FE won't be able to display the values properly. See examples here, particularly the last one which shows how to add additional fields (non key):
@@ -318,6 +322,15 @@ Role Collections can be specified inside the [xs-security.json](https://help.sap
 By specifying them here you keep all your security in the one place and not mixed up between here and the mta.yaml.
 
 Considering that *best practice* is to use separate subaccounts for each application layer (dev, tst, prd, etc) then there is no need to really append the space name to the role collections as allowed by using the mta.yaml.
+
+## Security how to secure endpoints
+See the [Node.js best practices](https://cap.cloud.sap/docs/node.js/best-practices) section in the CAP doco for general advice on securing endpoints.
+In general it includes:
+- Content Security Policy (CSP)
+- Cross-Site Request Forgery (CSRF)
+- Cross-Origin Resource Sharing (CORS)
+
+Some of these are already handled if your frontend apps are Fiori-based.
 
 ### mta.yaml
 In the UAA resource in the mta.yaml you can define your Role Collections like this example:
@@ -418,6 +431,8 @@ You know have a full debugger - can set break-points - single step - and so on..
 
 This is a great way of debugging if you are not using BAS or VSCODE which have built-in debuggers.
 
+__*UPDATE August 2022: I now prefer to deug from vscode. You just need a run configuration to launch your app and then can use the vscode debug facilities. Its a little nicer and quicker to use than opening up the chrome debugger each time.*__
+
 ## Kibana friendly logs
 Configure the Kibana formatter in the package.json:
 ![Kibana friendly log output](img/cap-kibana-logs.jpg)
@@ -469,6 +484,23 @@ Integrity checking can be globally disabled in the package.json (and numerous ot
 Integrity checks can be disabled programmatically by setting `cds.env.features.assert_integrity = true` to true/false.
 
 *!! Since the time of writing CAP now performs integrity checks on the db level so performance may be far better.*
+
+## Monitoring memory cpu event loop 
+[Clinic Doctor](https://clinicjs.org) is a great toolset for monitoring the performance of Node.js applications.
+
+Run clinic doctor (from within your project) with CAP as follows:
+```
+clinic doctor -- node ./node_modules/.bin/cds run --in-memory
+```
+At the end of your test use ctrl-c to exit and a web browser window will automatically open with the performance test results.
+
+Occasionally clinic doctor can fail to build the html page. If this happens then run the following to manually produce it:
+```
+clinic doctor --visualize-only .clinic/37637.clinic-doctor
+```
+Where the directory: `.clinic/37637.clinic-doctor` is where the captured trace files were written.
+
+NOTE: When running clini doctor for a long time, the data collection can get into the GB's and processing the charts in the web page can take 5 to 10 minutes plus.
 
 ## Remote services with persistence
 Sometimes you may have an external service and you extend that service in CAP with additional fields. In this case you need to persiste the data. See here the annotations to allow this:
@@ -538,24 +570,6 @@ When using the managed approuter be careful to set public: true in the sap.cloud
     },
 ```
 The public: true setting enables the app to be access by an approuter that is not in the same space (which I guess is the case when using the managed approuter).
-
-
-## Monitoring memory cpu event loop 
-[Clinic Doctor](https://clinicjs.org) is a great toolset for monitoring the performance of Node.js applications.
-
-Run clinic doctor (from within your project) with CAP as follows:
-```
-clinic doctor -- node ./node_modules/.bin/cds run --in-memory
-```
-At the end of your test use ctrl-c to exit and a web browser window will automatically open with the performance test results.
-
-Occasionally clinic doctor can fail to build the html page. If this happens then run the following to manually produce it:
-```
-clinic doctor --visualize-only .clinic/37637.clinic-doctor
-```
-Where the directory: `.clinic/37637.clinic-doctor` is where the captured trace files were written.
-
-NOTE: When running clini doctor for a long time, the data collection can get into the GB's and processing the charts in the web page can take 5 to 10 minutes plus.
 
 # Fiori
 
