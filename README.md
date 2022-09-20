@@ -239,6 +239,9 @@ Now we can test locally with `cds watch` and still deploy to cloud foundry (prod
 ## Service Handlers
 `each` has a special meaning in handler parameter names.
 By naming the event or parameter in a handler `each` it will be called as a per-row handler - as a convenience shortcut.
+
+*Is this still the case? Seems to have changed and you now get an array of objects on the list page and then just the one object on the object page.*
+
 ```
 this.after('each','Books', (book)=>{
   book.stock > 111 && book.discount='11%'
@@ -419,6 +422,14 @@ cf se activityrepo-srv DEBUG 'xssec:*'
 ```
 In this case we are asking for more debug info in the cap service logs for the xssec (security) component. Good for finding xsuaa issues.
 `cf se` is shorthand for `cf set-env`.
+
+For extra denug logs on remote calls:
+```
+cf se activityrepo-srv DEBUG 'remote'
+```
+
+See full list of remote logging module name in the [CAP help](https://pages.github.tools.sap/cap/docs/node.js/cds-log#cds-log-modules).
+
 
 ## Debugging with Chrome
 You can debug your CAP service directly in the Chrome debugger. Which means you can use the chrome debugger for both the CAP service and any web app your project may have.
