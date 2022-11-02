@@ -39,9 +39,11 @@ My findings from using CAP and Fiori Elements in real-world projects. Issues, wo
     - [Value Helps](#value-helps)
     - [General](#fe-general)
     - [Managed Approuter specifics](#managed-approuter)
+    - [Calling OData Actions and Functions](#calling-odata-actions-and-functions)
 * [Fiori](#fiori)
     - [Standalone fiori app](#standalone-fiori-app)
     - [Create a Fiori app for deployment to BTP cloud foundry](#create-a-fiori-app-for-deployment-to-btp-cloud-foundry)
+    - [Split fiori app into seprate MTA's from CAP MTA project](#split-fiori-app-into-seprate-mtas-from-cap-mta-project)
 * [Node.js/NPM](#node-npm)
 * [HANA CLOUD](#hana-cloud)
     - [Cross HDI Container Access With CAP Localized Entities](cross-hdi-container-access-with-cap-localized-entities)
@@ -584,6 +586,87 @@ When using the managed approuter be careful to set public: true in the sap.cloud
 ```
 The public: true setting enables the app to be access by an approuter that is not in the same space (which I guess is the case when using the managed approuter).
 
+## Calling OData Actions and Functions
+How do you call OData Actions and Functions from javascript in your UI5 app?
+
+For Actions there is an easy way which takes care or url's and CSRF tokens all for you and its called the Fiori Elements editFlow API (so only available for fiori elements based projects).
+
+In a controller extension you can use it like so:
+```
+myActionFunc: function () {
+    let actionName = "actionName";
+    // context is required for bound action only
+    let parameters = {
+      //contexts: oEvent.getSource().getBindingContext(),
+    model: this.getModel(),
+  };
+
+this.editFlow.invokeAction(actionName, parameters)
+    .then(function () {
+        MessageToast.show("Action executed...");
+    })
+    .catch(function (error) {
+        MessageToast.show("Error: " + error);
+    });
+}
+```
+
+In a freestyle sapui5 project you can call an Action by using the OData model objects.
+
+For OData Functions, the editFlow API does not work. Instead we need to make a manual ajax call like so:
+```
+myFunc: function () {
+    var url = this._view.getModel().getMetaModel().getAbsoluteServiceUrl('');
+    url = url.replace('/cust/', '/pool/');
+    url = url + 'getInfo()';
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function (data) {
+            console.dir(data);
+            var formattedMsg = '';
+            try {
+                formattedMsg = `Available: ${data.value.technicalInformation.available}
+                                Borrowed: ${data.value.technicalInformation.borrowed}
+                                Max: ${data.value.technicalInformation.max}
+                                Min: ${data.value.technicalInformation.min}
+                                Pending: ${data.value.technicalInformation.pending}
+                                Size: ${data.value.technicalInformation.size}`;
+            }
+            catch (e) {
+                formattedMsg = data.value;
+            }
+
+            MessageBox.show(formattedMsg, {
+                icon: MessageBox.Icon.SUCCESS,
+                title: 'HANA connection stats',
+                actions: [MessageBox.Action.CLOSE]
+            }); 
+        },
+        error: function (error) {
+            console.dir(error);
+
+            var message = "";
+            if (error.responseJSON) {
+                message = error.responseJSON.error.message;
+            } else {
+                message = error.responseText;
+            }
+
+            MessageBox.show(message, {
+                icon: MessageBox.Icon.ERROR,
+                title: 'Error',
+                actions: [MessageBox.Action.CLOSE]
+            });
+        }
+    });
+}
+```
+
+Note how we need to construct the full URL to call the service (so that it will work when deployed on BTP for example).
+
+
 # Fiori
 
 ## Standalone fiori app
@@ -617,7 +700,8 @@ Example xs-app.json route for the OData services destination (this goes INSIDE t
 },
 ```
 
-## Split fiori app into seprate MTA's from CAP MTA project
+
+## Split fiori app into seprate MTAs from CAP MTA project
 See [Separating fiori apps from the CAP service (Separate MTA's)](#sSeparating-fiori-apps-from-the-cap-service-separate-mta's)
 
 
