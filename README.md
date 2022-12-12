@@ -266,6 +266,9 @@ By default a CAP service destination will have a 30 second timeout. If you have 
 The destination needs to be the CAP service destination (the one which provides *srv-api*).
 
 ## Efficient (dare I say best practice) annotation file structure
+Note: I've revised this thinking here and no lopnger like using separate annotation files. Just use the one annotations.cds file and try and do as much as possible with Fiori Tools so that you never have to even look at an annotation again!
+
+
 I've always had an uneasy feeling with the metadata driven development model for fiori elements. We've always been taught about separation of concerns in software industry for decades now and here we are mixing up UI code with the persistence layer.
 
 So what I try to do is still keep some separation. Where it makes sense I will add annotations to the data model but only annotations that matter at that level - things such as typecasts; units of measure and curreny annotations for example.
